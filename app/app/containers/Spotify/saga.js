@@ -38,7 +38,7 @@ function requestBands(time_range, token) {
   return fetch(`http://localhost:8001/spotify/top-bands?${querystring.stringify({ url, token })}`, options).then(response => {
     return response.json()
   }).catch(error => {
-    console.log(error)
+    console.log(error.body)
   })
 }
 
@@ -55,7 +55,7 @@ function requestSimilarBands(bands, token) {
   return fetch(`http://localhost:8001/spotify/similar-bands?${querystring.stringify({ ids, token })}`, options).then(response => {
     return response.json()
   }).catch(error => {
-    console.log(error)
+    console.log(error.body)
   })
 }
 
@@ -74,7 +74,7 @@ export function* getTopBands() {
   }, [])
 
   let similarBands = yield call(requestSimilarBands, all, token)
-  console.log(similarBands)
+
   // Remove duplicates in top and similar bands
   similarBands = similarBands.reduce((carry, band) => {
     if (all.filter(_ => _.name === band.name).length > 0) {

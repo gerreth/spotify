@@ -44,7 +44,7 @@ router.get('/similar-bands', (req, res, next) => {
 
           return body
         }).catch(error => {
-          console.log(error)
+          console.log(error.body)
         })
       }
     })
@@ -64,7 +64,7 @@ router.get('/similar-bands', (req, res, next) => {
 
     return res.send(convert(artists));
   }).catch(error => {
-    console.log(error)
+    console.log(error.body)
   })
 })
 
@@ -91,11 +91,11 @@ router.get('/top-bands', (req, res, next) => {
         result = JSON.parse(body).items
         return res.send(convert(result));
       }).catch(error => {
-        console.log(error)
+        console.log(error.body)
       })
     }
   }).catch(error => {
-    console.log(error)
+    console.log(error.body)
   })
 });
 

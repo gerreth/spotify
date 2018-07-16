@@ -9,8 +9,8 @@ router.get('/', (req, res) => {
   res.send('respond with a resource');
 })
 router.get('/festivals', (req, res) => {
-  const min_date = '2018-07-07'
-  const max_date = '2018-09-30'
+  const min_date = '2018-07-01'
+  const max_date = '2018-12-30'
   const type = 'festival'
 
   const cities = {
@@ -26,14 +26,15 @@ router.get('/festivals', (req, res) => {
     SaintMalo: '28922',
   }
 
-  const base_url = 'https://api.songkick.com/api/3.0'
   const api_key = 'VNvgkjz2uCB5y2G6'
 
   const promises = Object.keys(cities).map(key => {
     let page = 1
 
     const id = cities[key]
-    const url = `${base_url}/events.json?apikey=${api_key}&location=sk:${id}&page=${page}&min_date=${min_date}&max_date=${max_date}&type=${type}`
+    const baseUrl = `https://api.songkick.com/api/3.0/events.json?apikey=${api_key}&location=sk:${id}&min_date=${min_date}&max_date=${max_date}&type=${type}`
+
+    const url = `${baseUrl}&page=${page}`
 
     return new Promise((resolve, reject) => {
       client.get(url, (error, result) => {
@@ -59,13 +60,61 @@ router.get('/festivals', (req, res) => {
           })
         })
       }
+    }).then(result => {
+      const perPage = result.resultsPage.perPage
+      const totalEntries = result.resultsPage.totalEntries
+      const numPages = Math.ceil(parseInt(totalEntries)/parseInt(perPage))
+
+      if (numPages > 1) {
+        const firstPage = result.resultsPage.results.event
+        const paginatedPromises = []
+
+        while (page < numPages) {
+          page++
+          const url = `${baseUrl}&page=${page}`
+          paginatedPromises.push(new Promise((resolve, reject) => {
+            client.get(url, (error, result) => {
+              resolve(JSON.parse(result))
+            })
+          }).then(result => {
+            if (result) {
+              console.log('From Cache Paginated')
+              return result
+            } else {
+              console.log('From API Paginated')
+              return new Promise((resolve, reject) => {
+                request({ url }, (error, response, body) => {
+                  body = JSON.parse(body)
+                  if(error || body.resultsPage.status !== 'ok') {
+                    reject(response)
+                  } else {
+                    client.set(url, JSON.stringify(body))
+                    client.expire(url, 24*60*60);
+                  }
+
+                  resolve(body)
+                })
+              })
+            }
+          }))
+        }
+
+        return Promise.all(paginatedPromises).then(results => {
+          const newPages = results.reduce((carry, result) => {
+            return [...carry, ...result.resultsPage.results.event]
+          }, [])
+
+          return [...firstPage, ...newPages]
+        })
+      } else {
+        return result.resultsPage.results.event
+      }
     })
   })
 
   Promise.all(promises).then(results => {
-
     const festivals = results
-      .reduce((carry, result) => [...carry, ...result.resultsPage.results.event], [])
+      .reduce((carry, result) => [...carry, ...result], [])
       .reduce((carry, festival) => {
         // Account for possible duplicates
         const exists = carry.filter(_ => _.name === festival.displayName)
@@ -86,7 +135,7 @@ router.get('/festivals', (req, res) => {
 
     res.send(festivals)
   }).catch(error => {
-    console.log(error)
+    console.log(error.body)
   })
 
 })
