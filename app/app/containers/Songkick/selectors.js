@@ -22,6 +22,7 @@ const makeSelectSongkick = () =>
 const makeSelectSongkickTopFestivals = () =>
   createSelector(selectGlobal, state => {
     let songkickFestivals = state.toJS().songkick.festivals
+
     songkickFestivals = songkickFestivals.map(festival => {
       festival.highlight = false
       festival.similar = false
@@ -47,7 +48,9 @@ const makeSelectSongkickTopFestivals = () =>
     // Highlight similar and favorite bands
     songkickFestivals = songkickFestivals.map(festival => {
       festival.highlight = false
+      festival.highlightCount = 0
       festival.similar = false
+      festival.similarCount = 0
       festival.artists = festival.artists.map(artist => {
         const returnArtists = {
           highlight: false,
@@ -58,11 +61,13 @@ const makeSelectSongkickTopFestivals = () =>
         if (spotifyTopBands.filter(_ => _.name === artist.name).length > 0) {
           returnArtists.highlight = true
           festival.highlight = true
+          festival.highlightCount = festival.highlightCount + 1
         }
 
         if (spotifySimilarBands.filter(_ => _.name === artist.name).length > 0) {
           returnArtists.similar = true
           festival.similar = true
+          festival.similarCount = festival.similarCount + 1
         }
 
         return returnArtists

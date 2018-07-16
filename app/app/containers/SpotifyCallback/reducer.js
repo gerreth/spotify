@@ -25,6 +25,7 @@ function spotifyCallbackReducer(state = initialState, action) {
     case SET_TOKEN_SUCCESS:
       return state
         .set('token', action.token)
+        .set('error', false)
         .set('loading', false);
     default:
       return state;

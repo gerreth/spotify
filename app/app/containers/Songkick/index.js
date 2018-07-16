@@ -40,8 +40,6 @@ export class Songkick extends React.Component {
       topFestivals,
     } = this.props
 
-    // console.log(topFestivals)
-
     return (
       <div>
         <Helmet>

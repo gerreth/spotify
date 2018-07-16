@@ -26,6 +26,7 @@ function spotifyReducer(state = initialState, action) {
     case LOAD_TOKEN_SUCCESS:
       return state
         .set('token', action.token)
+        .set('error', false)
         .set('loading', false);
     case GET_TOP_BANDS:
       return state
@@ -34,13 +35,10 @@ function spotifyReducer(state = initialState, action) {
         .set('similarBands', {})
         .set('topBands', {});
     case GET_TOP_BANDS_SUCCESS:
-      const {
-        similarBands,
-        topBands,
-      } = action.bands
       return state
-        .set('similarBands', similarBands)
-        .set('topBands', topBands)
+        .set('similarBands', action.bands.similarBands)
+        .set('topBands', action.bands.topBands)
+        .set('error', false)
         .set('loading', false);
     default:
       return state;

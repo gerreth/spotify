@@ -39,16 +39,8 @@ import Bands from 'containers/Bands';
 /* eslint-disable react/prefer-stateless-function */
 export class Spotify extends React.Component {
   componentDidMount() {
-    const {
-      spotify: {
-        token,
-        topBands,
-      }
-    } = this.props
-
-    if (token === undefined) this.props.getToken()
-    if (token !== undefined && (Object.keys(topBands).length === 0 && topBands.constructor === Object)) this.props.getTopBands()
-    this.props.getTopBands()
+    if (this.props.spotify.token === undefined) this.props.getToken()
+    // if (token !== undefined && (Object.keys(topBands).length === 0 && topBands.constructor === Object)) this.props.getTopBands()
 	}
 
   render() {
@@ -60,6 +52,7 @@ export class Spotify extends React.Component {
     } = this.props
 
     const loggedIn = token !== undefined
+    const bands = (Object.keys(topBands).length === 0 && topBands.constructor === Object) ? undefined : topBands
 
     return (
       <div>
@@ -67,8 +60,12 @@ export class Spotify extends React.Component {
           <title>Spotify</title>
           <meta name="description" content="Description of Spotify" />
         </Helmet>
-        {topBands &&
-          <Bands topBands={topBands} />
+        {bands &&
+          <Bands topBands={bands} />
+        }
+
+        {!bands &&
+          <input type="button" value="Submit" onClick={this.props.getTopBands} />
         }
       </div>
     );
@@ -80,9 +77,14 @@ Spotify.propTypes = {
   getTopBands: PropTypes.func,
   // spotify: PropTypes.object,
   spotify: PropTypes.shape({
-    similarBands: PropTypes.object,
+    similarBands: PropTypes.array,
     token: PropTypes.string,
-    topBands: PropTypes.object,
+    topBands: PropTypes.shape({
+      short_term: PropTypes.array,
+      medium_term: PropTypes.array,
+      long_term: PropTypes.array,
+      all: PropTypes.array,
+    })
   }),
 };
 
